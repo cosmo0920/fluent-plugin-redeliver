@@ -1,6 +1,11 @@
 class Fluent::RedeliverOutput < Fluent::Output
   Fluent::Plugin.register_output('redeliver', self)
 
+  # Define `router` method of v0.12 to support v0.10 or earlier
+  unless method_defined?(:router)
+    define_method("router") { Fluent::Engine }
+  end
+
   include Fluent::SetTagKeyMixin
   config_set_default :include_tag_key, false
 
@@ -41,7 +46,7 @@ class Fluent::RedeliverOutput < Fluent::Output
       es.each do |time, record|
         if (record)
           filter_record(tag, time, record)
-          Fluent::Engine.emit(newtag, time, record)
+          router.emit(newtag, time, record)
         end
       end
     end
